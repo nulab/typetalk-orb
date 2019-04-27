@@ -1,0 +1,86 @@
+version: "2.1"
+
+###########################################################
+## GitHub: https://github.com/ikikko/typetalk-orb ##
+###########################################################
+
+description: |
+  Easily integrate custom Typetalk notifications. Create custom messages for any job or receive status updates.
+
+# Create your token here: https://developer.nulab.com/docs/typetalk/
+
+## Requirements ##
+## - Bash
+## - cURL
+
+commands:
+  ## NOTIFY ##
+  notify:
+    description: Notify a Typetalk with a custom message
+    parameters:
+      token:
+        description: Enter either your token value or use the CircleCI UI to add your token under the 'TYPETALK_TOKEN' env var
+        type: string
+        default: ${TYPETALK_TOKEN}
+      message:
+        description: Enter custom message.
+        type: string
+        default: Your job on CircleCI has completed.\n$CIRCLE_BUILD_URL
+      topic-id:
+        description: Enter topic id.
+        type: string
+      talk-id:
+        description: Enter talk id.
+        type: string
+        default: ""
+    steps:
+      - run:
+          name: Typetalk Notification
+          command: |
+            # Provide error if non-bash shell
+            if [ $(echo $SHELL | grep -c bash) -ne 1 ]; then
+              echo Bash not installed.
+              exit 1
+            fi
+            # Provide error if no topic id is set
+            if [ -z "<< parameters.topic-id >>" ]; then
+              echo "NO TOPIC ID SET"
+              exit 1
+            fi
+            # Provide error if no token is set and error. Otherwise continue
+            if [ -z "<< parameters.token >>" ]; then
+              echo "NO TYPETALK TOKEN SET"
+              echo "Please input your TYPETALK_TOKEN value either in the settings for this project, or as a parameter for this orb."
+              exit 1
+            else
+              # Token properly set.
+              echo Notifying Typetalk
+              curl \
+                -d "typetalkToken=<< parameters.token >>" \
+                --data-urlencode message@<(echo -e "<< parameters.message >>") \
+                <<# parameters.talk-id >>
+                -d "talkIds[0]=<< parameters.talk-id >>" \
+                <</ parameters.talk-id >>
+                -w "\n" \
+                "https://typetalk.com/api/v1/topics/<< parameters.topic-id>>"
+            fi
+
+#
+# Usage examples of Typetalk Orb
+#
+examples:
+  notify:
+    description: "Notify a Typetalk a custom message at any point in a job with this custom step. More docs here: https://github.com/ikikko/typetalk-orb"
+    usage:
+      version: 2.1
+      orbs:
+        typetalk: ikikko/typetalk@x.y.z
+      jobs:
+        build:
+          docker:
+            - image: <docker image>
+          steps:
+            - typetalk/notify:
+                message: "This is a custom message notification" # Optional: Enter your own message
+                topic-id: "123" # Enter a Topic ID
+                talk-id: "1234" # Optional: Enter a Talk ID that you want to put the message in
