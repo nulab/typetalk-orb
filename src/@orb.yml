@@ -56,12 +56,13 @@ commands:
               # Token properly set.
               echo Notifying Typetalk
               curl \
+                -sSf \
                 -d "typetalkToken=<< parameters.token >>" \
                 --data-urlencode message@<(echo -e "<< parameters.message >>") \
                 <<# parameters.talk-id >>
                 -d "talkIds[0]=<< parameters.talk-id >>" \
                 <</ parameters.talk-id >>
-                -w "\n" \
+                -o /dev/null \
                 "https://typetalk.com/api/v1/topics/<< parameters.topic-id>>"
             fi
 
