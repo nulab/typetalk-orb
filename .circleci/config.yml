@@ -14,6 +14,14 @@ jobs:
           topic-id: "119287"
           talk-id: "55306"
 
+  statustest:
+    executor: orb-tools/ci-base
+    steps:
+      - run: exit 0 #toggle this to force success or status for testing
+      - typetalk/status:
+          topic-id: "119287"
+          talk-id: "55307"
+
 # yaml anchor filters
 integration-dev_filters: &integration-dev_filters
   branches:
@@ -30,6 +38,7 @@ integration-master_filters: &integration-master_filters
 prod-deploy_requires: &prod-deploy_requires
   [
     notifytest-master,
+    statustest-master,
   ]
 
 workflows:
@@ -79,9 +88,19 @@ workflows:
           context: orb-publishing
           filters: *integration-dev_filters
 
+      - statustest:
+          name: statustest-dev
+          context: orb-publishing
+          filters: *integration-dev_filters
+
       # triggered by master branch commits
       - notifytest:
           name: notifytest-master
+          context: orb-publishing
+          filters: *integration-master_filters
+
+      - statustest:
+          name: statustest-master
           context: orb-publishing
           filters: *integration-master_filters
 
