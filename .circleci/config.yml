@@ -5,10 +5,14 @@ orbs:
   typetalk: ikikko/typetalk@dev:alpha
 
 jobs:
-  test-dummy:
+  notifytest:
     executor: orb-tools/ci-base
     steps:
-      - run: echo dummy
+      - run: exit 0 #toggle this to force success or status for testing
+      - typetalk/notify:
+          message: "notification test for the Typetalk orb, triggered by [commit ${CIRCLE_SHA1}](https://github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/commit/${CIRCLE_SHA1}) on ${CIRCLE_PROJECT_REPONAME} ([build here](${CIRCLE_BUILD_URL}))"
+          topic-id: "119287"
+          talk-id: "55306"
 
 # yaml anchor filters
 integration-dev_filters: &integration-dev_filters
@@ -25,7 +29,7 @@ integration-master_filters: &integration-master_filters
 
 prod-deploy_requires: &prod-deploy_requires
   [
-    test-dummy-master,
+    notifytest-master,
   ]
 
 workflows:
@@ -70,14 +74,14 @@ workflows:
   integration_tests-prod_deploy:
     jobs:
       # triggered by non-master branch commits
-      - test-dummy:
-          name: test-dummy-dev
+      - notifytest:
+          name: notifytest-dev
           context: orb-publishing
           filters: *integration-dev_filters
 
       # triggered by master branch commits
-      - test-dummy:
-          name: test-dummy-master
+      - notifytest:
+          name: notifytest-master
           context: orb-publishing
           filters: *integration-master_filters
 

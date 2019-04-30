@@ -22,13 +22,17 @@ parameters:
 
 steps:
   - run:
-      name: Typetalk Notification
+      name: Provide error if non-bash shell
       command: |
-        # Provide error if non-bash shell
-        if [ $(echo $SHELL | grep -c bash) -ne 1 ]; then
+        if [ -z "$BASH" ]; then
           echo Bash not installed.
           exit 1
         fi
+
+  - run:
+      name: Typetalk Notification
+      shell: /bin/bash
+      command: |
         # Provide error if no topic id is set
         if [ -z "<< parameters.topic-id >>" ]; then
           echo "NO TOPIC ID SET"
