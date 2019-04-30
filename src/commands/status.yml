@@ -1,0 +1,105 @@
+description: >
+  Send a status alert at the end of a job based on success or failure.
+  Must be the last step in a job.
+
+parameters:
+  token:
+    description: Enter either your token value or use the CircleCI UI to add your token under the 'TYPETALK_TOKEN' env var
+    type: string
+    default: ${TYPETALK_TOKEN}
+
+  success-message:
+    description: Enter custom message.
+    type: string
+    default: ":tada: A $CIRCLE_JOB job has succeeded!\n$CIRCLE_BUILD_URL"
+
+  failure-message:
+    description: Enter custom message.
+    type: string
+    default: ":red_circle: A $CIRCLE_JOB job has failed!\n$CIRCLE_BUILD_URL"
+
+  topic-id:
+    description: Enter topic id.
+    type: string
+
+  talk-id:
+    description: Enter talk id.
+    type: string
+    default: ""
+
+  fail-only:
+    description: If 'true', notifications successful jobs will not be sent
+    type: string
+    default: "false"
+
+  only-for-branch:
+    description: If, set, a specific branch for which typetalk status updates will be sent.
+    type: string
+    default: ""
+
+steps:
+  - run:
+      name: Typetalk - Setting Failure Condition
+      command: |
+        echo 'export TYPETALK_BUILD_STATUS="fail"' >> $BASH_ENV
+      when: on_fail
+
+  - run:
+      name: Typetalk - Setting Success Condition
+      command: |
+        echo 'export TYPETALK_BUILD_STATUS="success"' >> $BASH_ENV
+      when: on_success
+
+  - run:
+      name: Provide error if non-bash shell
+      command: |
+        if [ -z "$BASH" ]; then
+          echo Bash not installed.
+          exit 1
+        fi
+
+  - run:
+      name: Typetalk - Sending Status Alert
+      shell: /bin/bash
+      when: always
+      command: |
+        if [ "x" == "x<< parameters.only-for-branch>>" ] || [ "${CIRCLE_BRANCH}" == "<< parameters.only-for-branch>>" ]; then
+          # Provide error if no token is set and error. Otherwise continue
+          if [ -z "<< parameters.token >>" ]; then
+            echo "NO TYPETALK TOKEN SET"
+            echo "Please input your TYPETALK_TOKEN value either in the settings for this project, or as a parameter for this orb."
+            exit 1
+          else
+            #If successful
+            if [ "$TYPETALK_BUILD_STATUS" = "success" ]; then
+              #Skip if fail-only
+              if [ << parameters.fail-only >> = true ]; then
+                echo "The job completed successfully"
+                echo '"fail-only" is set to "true". No Typetalk notification sent.'
+              else
+                curl \
+                  -sSf \
+                  -d "typetalkToken=<< parameters.token >>" \
+                  --data-urlencode message@<(echo -e "<< parameters.success-message >>") \
+                  <<# parameters.talk-id >>
+                  -d "talkIds[0]=<< parameters.talk-id >>" \
+                  <</ parameters.talk-id >>
+                  -o /dev/null \
+                  "https://typetalk.com/api/v1/topics/<< parameters.topic-id>>"
+                echo "Job completed successfully. Alert sent."
+              fi
+            else
+              #If Failed
+              curl \
+                -sSf \
+                -d "typetalkToken=<< parameters.token >>" \
+                --data-urlencode message@<(echo -e "<< parameters.failure-message >>") \
+                <<# parameters.talk-id >>
+                -d "talkIds[0]=<< parameters.talk-id >>" \
+                <</ parameters.talk-id >>
+                -o /dev/null \
+                "https://typetalk.com/api/v1/topics/<< parameters.topic-id>>"
+              echo "Job failed. Alert sent."
+            fi
+          fi
+        fi
