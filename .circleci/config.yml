@@ -1,0 +1,122 @@
+version: 2.1
+
+orbs:
+  orb-tools: circleci/orb-tools@8.8.0
+  typetalk: ikikko/typetalk@dev:alpha
+
+jobs:
+  notifytest:
+    executor: orb-tools/ci-base
+    steps:
+      - run: exit 0 #toggle this to force success or status for testing
+      - typetalk/notify:
+          message: "notification test for the Typetalk orb, triggered by [commit ${CIRCLE_SHA1}](https://github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/commit/${CIRCLE_SHA1}) on ${CIRCLE_PROJECT_REPONAME} ([build here](${CIRCLE_BUILD_URL}))"
+          topic-id: "119287"
+          talk-id: "55306"
+
+# yaml anchor filters
+integration-dev_filters: &integration-dev_filters
+  branches:
+    ignore: /.*/
+  tags:
+    only: /integration-.*/
+
+integration-master_filters: &integration-master_filters
+  branches:
+    ignore: /.*/
+  tags:
+    only: /master-.*/
+
+prod-deploy_requires: &prod-deploy_requires
+  [
+    notifytest-master,
+  ]
+
+workflows:
+  lint_pack-validate_publish-dev:
+    jobs:
+      - orb-tools/lint:
+          lint-dir: src
+
+      - orb-tools/pack:
+          requires:
+            - orb-tools/lint
+
+      - orb-tools/publish-dev:
+          orb-name: ikikko/typetalk
+          context: orb-publishing
+          requires:
+            - orb-tools/pack
+
+      - orb-tools/trigger-integration-workflow:
+          name: trigger-integration-dev
+          context: orb-publishing
+          ssh-fingerprints: 9d:db:03:be:b0:fc:0a:bc:8a:ca:92:55:bf:c0:6f:fc
+          cleanup-tags: true
+          requires:
+            - orb-tools/publish-dev
+          filters:
+            branches:
+              ignore: master
+
+      - orb-tools/trigger-integration-workflow:
+          name: trigger-integration-master
+          context: orb-publishing
+          ssh-fingerprints: 9d:db:03:be:b0:fc:0a:bc:8a:ca:92:55:bf:c0:6f:fc
+          cleanup-tags: true
+          tag: master
+          requires:
+            - orb-tools/publish-dev
+          filters:
+            branches:
+              only: master
+
+  integration_tests-prod_deploy:
+    jobs:
+      # triggered by non-master branch commits
+      - notifytest:
+          name: notifytest-dev
+          context: orb-publishing
+          filters: *integration-dev_filters
+
+      # triggered by master branch commits
+      - notifytest:
+          name: notifytest-master
+          context: orb-publishing
+          filters: *integration-master_filters
+
+      # patch, minor, or major publishing
+      - orb-tools/dev-promote-prod:
+          name: dev-promote-patch
+          context: orb-publishing
+          orb-name: ikikko/typetalk
+          requires: *prod-deploy_requires
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /master-patch.*/
+
+      - orb-tools/dev-promote-prod:
+          name: dev-promote-minor
+          context: orb-publishing
+          orb-name: ikikko/typetalk
+          release: minor
+          requires: *prod-deploy_requires
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /master-minor.*/
+
+      - orb-tools/dev-promote-prod:
+          name: dev-promote-major
+          context: orb-publishing
+          orb-name: ikikko/typetalk
+          release: major
+          requires: *prod-deploy_requires
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /master-major.*/
