@@ -1,0 +1,20 @@
+description: "Send a status alert at the end of a job based on success or failure. This must be the last step in a job."
+
+usage:
+  version: 2.1
+
+  orbs:
+    typetalk: ikikko/typetalk@x.y.z
+
+  jobs:
+    build:
+      docker:
+        - image: <docker image>
+      steps:
+        # With fail-only set to true, no alert will be sent in this example. Change the exit status on the next line to produce an error.
+        - run: exit 0
+
+        - typetalk/status:
+            fail-only: "true" # Optional: if set to "true" then only failure messages will occur.
+            topic-id: "123" # Enter a Topic ID
+            only-for-branch: "only-for-branch" # Optional: If set, a specific branch for which status updates will be sent.
