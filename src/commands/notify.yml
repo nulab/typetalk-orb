@@ -9,7 +9,9 @@ parameters:
   message:
     description: Enter custom message.
     type: string
-    default: Your job on CircleCI has completed.\n$CIRCLE_BUILD_URL
+    default: |-
+      Your job on CircleCI has completed.
+      $CIRCLE_BUILD_URL
 
   topic-id:
     description: Enter topic id.
@@ -49,7 +51,7 @@ steps:
           curl \
             -sSf \
             -d "typetalkToken=<< parameters.token >>" \
-            --data-urlencode message@<(echo -e "<< parameters.message >>") \
+            --data-urlencode "message=<< parameters.message >>" \
             <<# parameters.talk-id >>
             -d "talkIds[0]=<< parameters.talk-id >>" \
             <</ parameters.talk-id >>

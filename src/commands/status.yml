@@ -11,12 +11,16 @@ parameters:
   success-message:
     description: Enter custom message.
     type: string
-    default: ":tada: A $CIRCLE_JOB job has succeeded!\n$CIRCLE_BUILD_URL"
+    default: |-
+      :tada: A $CIRCLE_JOB job has succeeded!
+      $CIRCLE_BUILD_URL
 
   failure-message:
     description: Enter custom message.
     type: string
-    default: ":red_circle: A $CIRCLE_JOB job has failed!\n$CIRCLE_BUILD_URL"
+    default: |-
+      :red_circle: A $CIRCLE_JOB job has failed!
+      $CIRCLE_BUILD_URL
 
   topic-id:
     description: Enter topic id.
@@ -80,7 +84,7 @@ steps:
                 curl \
                   -sSf \
                   -d "typetalkToken=<< parameters.token >>" \
-                  --data-urlencode message@<(echo -e "<< parameters.success-message >>") \
+                  --data-urlencode "message=<< parameters.success-message >>" \
                   <<# parameters.talk-id >>
                   -d "talkIds[0]=<< parameters.talk-id >>" \
                   <</ parameters.talk-id >>
@@ -93,7 +97,7 @@ steps:
               curl \
                 -sSf \
                 -d "typetalkToken=<< parameters.token >>" \
-                --data-urlencode message@<(echo -e "<< parameters.failure-message >>") \
+                --data-urlencode "message=<< parameters.failure-message >>" \
                 <<# parameters.talk-id >>
                 -d "talkIds[0]=<< parameters.talk-id >>" \
                 <</ parameters.talk-id >>
