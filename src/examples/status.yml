@@ -4,7 +4,7 @@ usage:
   version: 2.1
 
   orbs:
-    typetalk: ikikko/typetalk@x.y.z
+    typetalk: nulab/typetalk@x.y.z
 
   jobs:
     build:

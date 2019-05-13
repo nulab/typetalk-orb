@@ -1,10 +1,10 @@
-description: "Notify a Typetalk a custom message at any point in a job with this custom step. More docs here: https://github.com/ikikko/typetalk-orb"
+description: "Notify a Typetalk a custom message at any point in a job with this custom step. More docs here: https://github.com/nulab/typetalk-orb"
 
 usage:
   version: 2.1
 
   orbs:
-    typetalk: ikikko/typetalk@x.y.z
+    typetalk: nulab/typetalk@x.y.z
 
   jobs:
     build:

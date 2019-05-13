@@ -2,7 +2,7 @@ version: 2.1
 
 orbs:
   orb-tools: circleci/orb-tools@8.8.0
-  typetalk: ikikko/typetalk@dev:alpha
+  typetalk: nulab/typetalk@dev:alpha
 
 jobs:
   notifytest:
@@ -52,7 +52,7 @@ workflows:
             - orb-tools/lint
 
       - orb-tools/publish-dev:
-          orb-name: ikikko/typetalk
+          orb-name: nulab/typetalk
           context: orb-publishing
           requires:
             - orb-tools/pack
@@ -108,7 +108,7 @@ workflows:
       - orb-tools/dev-promote-prod:
           name: dev-promote-patch
           context: orb-publishing
-          orb-name: ikikko/typetalk
+          orb-name: nulab/typetalk
           requires: *prod-deploy_requires
           filters:
             branches:
@@ -119,7 +119,7 @@ workflows:
       - orb-tools/dev-promote-prod:
           name: dev-promote-minor
           context: orb-publishing
-          orb-name: ikikko/typetalk
+          orb-name: nulab/typetalk
           release: minor
           requires: *prod-deploy_requires
           filters:
@@ -131,7 +131,7 @@ workflows:
       - orb-tools/dev-promote-prod:
           name: dev-promote-major
           context: orb-publishing
-          orb-name: ikikko/typetalk
+          orb-name: nulab/typetalk
           release: major
           requires: *prod-deploy_requires
           filters:
