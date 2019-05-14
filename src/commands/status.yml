@@ -88,6 +88,7 @@ steps:
                   <<# parameters.talk-id >>
                   -d "talkIds[0]=<< parameters.talk-id >>" \
                   <</ parameters.talk-id >>
+                  -d "showLinkMeta=false" \
                   -o /dev/null \
                   "https://typetalk.com/api/v1/topics/<< parameters.topic-id>>"
                 echo "Job completed successfully. Alert sent."
@@ -101,6 +102,7 @@ steps:
                 <<# parameters.talk-id >>
                 -d "talkIds[0]=<< parameters.talk-id >>" \
                 <</ parameters.talk-id >>
+                -d "showLinkMeta=false" \
                 -o /dev/null \
                 "https://typetalk.com/api/v1/topics/<< parameters.topic-id>>"
               echo "Job failed. Alert sent."
